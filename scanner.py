@@ -10,8 +10,9 @@ IDENTIFIER = re.compile('' + LETTER + '(' + LETTER + '|' + LETTER + DIGIT + ')*'
 NUMBER = re.compile('' + DIGIT +'+')
 SYMBOL = re.compile('\(|\)|\{|\}|\[|\]|,|;|\+|-|\*|\/|==|\!=|>|>=|<|<=|=|&&|\|\|')
 RESERVED_WORD = re.compile('int|void|if|while|return|read|write|print|continue|break|binary|decimal')
-STRING = re.compile('[\'|"].*[\'|"]')
+STRING = re.compile('".*"')
 META_STATEMENT = re.compile('(\#|\/\/).*\n')
+SPACES = re.compile('\s+')
 
 class Tokens(Enum):
   meta = 1
@@ -20,13 +21,15 @@ class Tokens(Enum):
   identifier = 4
   number = 5
   string = 6
+  spaces = 7
 
 token_to_regex_map = dict([(Tokens.meta, META_STATEMENT),
                            (Tokens.reserved_word, RESERVED_WORD),
                            (Tokens.identifier, IDENTIFIER),
                            (Tokens.number, NUMBER),
                            (Tokens.symbol, SYMBOL),
-                           (Tokens.string, STRING)])
+                           (Tokens.string, STRING),
+                           (Tokens.spaces, SPACES)])
 
 class Token:
   def __init__(self, string, token_type):
@@ -76,16 +79,6 @@ def tokenize_word(word, line, line_count):
 
   return(tokens)
 
-def tokenize_line(line, line_count) :
-  tokens = []
-
-  string_tokens = re.split("\s", line)
-
-  for s_token in string_tokens:
-    tokens.extend(tokenize_word(s_token, line, line_count))
-
-  return tokens
-
 def tokenize_file(filename):
   tokens = []
   line_count = 0
@@ -96,7 +89,7 @@ def tokenize_file(filename):
     if META_STATEMENT.match(line.lstrip()) :
       tokens.append(Token(line, Tokens.meta))
     else :
-      tokens += tokenize_line(line, line_count)
+      tokens.extend(tokenize_word(line, line, line_count))
 
   return(tokens)
 
@@ -105,9 +98,7 @@ def create_gen_file_from_tokens(file_name, tokens):
 
   for token in tokens:
     if token.token_type == Tokens.identifier and token.string != 'main':
-      new_file.write('cs512' + token.string + ' ')
-    elif token.token_type != Tokens.meta:
-      new_file.write(token.string + ' ')
+      new_file.write('cs512' + token.string)
     else :
       new_file.write(token.string)
 

@@ -31,18 +31,18 @@ If a filename is not provided an exception is thrown.
 
 ## Implementation
 
-The scanner primarily breaks the input file down line by line, then a line down by spaces, and finally each substring in the line is read for tokens. As a token is encounted at the beginning of each substring, the token is parsed out and the rest of the string is looked at for more tokens. The tokens have a heirarchy so if a substring starts with a string eligible for RESERVED\_WORD or IDENTIFIER the RESERVED\_WORD will always win. The RESERVED\_WORD will then be parsed out and added as a token.
+The scanner primarily breaks the input file down line by line, then each line is matched with the regex for the tokens using pythons regex match function. The match function only returns if a regex matches the start of a string. If a token is encounted at the beginning of each substring, the token is parsed out and the rest of the string is looked at for more tokens. The tokens have a heirarchy so if a substring starts with a string eligible for RESERVED\_WORD or IDENTIFIER the RESERVED\_WORD will always win. The RESERVED\_WORD will then be parsed out and added as a token.
 
-META strings are taken out before all other parsing as they are a special case. Once the scanner is finished, a list of tokens is returned. Creating the generated file is easy at that point with adding cs512 to each identifier but the one with the string 'main'. 
+META strings are taken out before all other parsing as they are a special case. Once the scanner is finished, a list of tokens is returned. Creating the generated file is easy at that point with adding cs512 to each identifier but the one with the string 'main'. Adding spaces as a token type allowed the scanner to re-add the appropriate spaces without impacting the parsing of the file.
 
-Each valid token is compiled as a regex in the top of the file. After that, a dictionary with token to regex holds information for ease of use. The dict is used to iterate over each substring to find eligible tokens for the strings.
+Each valid token is compiled as a regex in the top of the file. After that, a dictionary with token to regex holds information for ease of use. The dict is used to iterate over each substring to find eligible tokens for the strings. An example as how the dictionary is used is below.
 
 ### Data structure
 
 There are some objects created to better manage the scanner.
 
 #### Tokens
-An enum representing the 6 different top level tokens available to the scanner. In order those are 
+An enum representing the 7 different top level tokens available to the scanner. In order those are 
 
 1. meta 
 2. reserved word
@@ -50,6 +50,7 @@ An enum representing the 6 different top level tokens available to the scanner. 
 4. number
 5. symbol
 6. string
+7. spaces
 
 #### Token
 An object to hold token information, include's the original token (string) and token_type (enum value).
@@ -66,7 +67,8 @@ Contains the token ids (enum) to regex values.
         (Tokens.identifier, IDENTIFIER),
         (Tokens.number, NUMBER),
         (Tokens.symbol, SYMBOL),
-        (Tokens.string, STRING)])
+        (Tokens.string, STRING),
+        (tokens.spaces, SPACES)])
 
 ```
 
