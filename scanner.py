@@ -1,3 +1,8 @@
+
+"""CSC512 Scanner script
+
+Parses input file for tokens and creates a generated filed adding cs512 to all identifiers but 'main'"""
+
 import sys
 import re
 import os
@@ -6,6 +11,7 @@ from enum import Enum
 LETTER = '[a-zA-Z\_]'
 DIGIT = '\d'
 
+#Regexes of Tokens
 IDENTIFIER = re.compile('' + LETTER + '(' + LETTER + '|' + LETTER + DIGIT + ')*')
 NUMBER = re.compile('' + DIGIT +'+')
 SYMBOL = re.compile('\(|\)|\{|\}|\[|\]|,|;|\+|-|\*|\/|==|\!=|>|>=|<|<=|=|&&|\|\|')
@@ -15,6 +21,7 @@ META_STATEMENT = re.compile('(\#|\/\/).*\n')
 SPACES = re.compile('\s+')
 
 class Tokens(Enum):
+  """Enum representing all available tokens"""
   meta = 1
   reserved_word = 2
   symbol = 3
@@ -32,24 +39,45 @@ token_to_regex_map = dict([(Tokens.meta, META_STATEMENT),
                            (Tokens.spaces, SPACES)])
 
 class Token:
+  """Token class to represent a token via a string and the token type (enum)"""
   def __init__(self, string, token_type):
+    #: str: the token
     self.string=string
+    #: int: integer type from Enum
     self.token_type=token_type
 
 class InvalidToken(Exception):
   def __init__(self,token,line_number,column):
+    #: str: invalid token
     self.token = token
+    #: int: line number of invalid token
     self.line_number = line_number
+    #: int: column of invalid token
     self.column = column
   def __str__(self):
     return 'Unrecognized token ' + self.token + ' line=' + str(self.line_number) + ',col=' + str(self.column)
 
 def read_file(filename) :
-    f = open(filename, "r")
-    for line in f:
-        yield line
+  """Returns a generator where a file can be read line by line
+
+  Args:
+  filename (str) : file to open
+
+  Returns:
+  generator of lines
+  """
+  f = open(filename, "r")
+  for line in f:
+    yield line
 
 def get_matches_that_starts_with(str) :
+  """Returns all regexes from dictionary that match the string
+
+  Args:
+  str (str) : string to match against
+
+  Returns:
+  a list of Tuples, each Tuple is group of (token_key, regex, MatchObject)"""
   matches = []
 
   for key, regex in token_to_regex_map.items():
@@ -60,6 +88,19 @@ def get_matches_that_starts_with(str) :
   return matches
 
 def tokenize_word(word, line, line_count):
+  """Tokenizes a 'word', word can be the entire string or a substring.
+  Each word is matched against all valid tokens. As tokens are parsed out they
+  are collected. This is a recursive call made until the string is empty.
+
+  Args:
+  word (str) : line or substring of the currently parsing element
+  line (str) : entire line, used to find column when error occurs
+  line_count (int) : the line on which the current tokenize function is operating
+
+  Returns:
+  list of tokens (Token class)
+  Raises:
+  InvalidToken if a token isn't recognized"""
   tokens = []
 
   if len(word) == 0:
@@ -80,6 +121,14 @@ def tokenize_word(word, line, line_count):
   return(tokens)
 
 def tokenize_file(filename):
+  """Creates tokens for the filename provided. Each line is read and
+  parsed for tokens.
+
+  Args:
+  filename (str) : Filename of file to scan
+
+  Returns:
+  list of tokens (Token class)) """
   tokens = []
   line_count = 0
 
@@ -94,6 +143,11 @@ def tokenize_file(filename):
   return(tokens)
 
 def create_gen_file_from_tokens(file_name, tokens):
+  """Create _gen file from a list of tokens, will prepend cs512 in identifiers
+
+  Args:
+  file_name: filename to use to write to
+  tokens (list of Token): list of tokens to generate file from"""
   new_file = open(file_name, "w")
 
   for token in tokens:
