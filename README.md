@@ -1,16 +1,12 @@
 # CSC512 Project 1
 
 ## Description
-Scanner written in python using verion 2.7.6 The code scanner parses a file 
-and will then create a new file with the contents adjusted to hava cs512 
-embedded before every embedding. Tokens recognized by the scanner are defined
-[here](http://people.engr.ncsu.edu/xshen5/csc512_fall2016/projects/TokenLang.html).
-If an invalid token is encountered, the file is not created an 
-error with the line and column of the invalid token is raised. 
+Scanner written in python 2.7.6. The code scanner parses a file 
+and will then create a new file (filename\_gen.ext) with the contents adjusted to have cs512 added before every identifier token. Tokens recognized by the scanner are defined [here](http://people.engr.ncsu.edu/xshen5/csc512_fall2016/projects/TokenLang.html). If an invalid token is encountered, the file is not created and an error with the line and column of the invalid token is raised. 
 
 ## Requirements
 1. python 2.7.6
-2. install depdendencies
+2. install dependencies
 
 ## Dependencies
 In order to run the scanner, you will need to install the dependencies. To install depenencies run the command below command.
@@ -35,9 +31,9 @@ If a filename is not provided an exception is thrown.
 
 ## Implementation
 
-The scanner primarily breaks the input file down line by line, then a line down by spaces, and finally each substring in the line is read for tokens. As a token is encounted at the begginning of each substring, the token is parsed out and the rest of the string is looked at for more tokens. The tokens have a heirarchy so if a substring starts with a string eligible for RESERVED\_WORD or IDENTIFIER the RESERVED\_WORD will always win. The RESERVED\_WORD will then be parsed out and added as a token.
+The scanner primarily breaks the input file down line by line, then a line down by spaces, and finally each substring in the line is read for tokens. As a token is encounted at the beginning of each substring, the token is parsed out and the rest of the string is looked at for more tokens. The tokens have a heirarchy so if a substring starts with a string eligible for RESERVED\_WORD or IDENTIFIER the RESERVED\_WORD will always win. The RESERVED\_WORD will then be parsed out and added as a token.
 
-META strings are taken out before all other parsing as they are handled as a special case. Once the tokens are created, a list of tokens is returned. Creating the generated file is easy at that point with adding cs512 to each identifier but the one with the string 'main'. 
+META strings are taken out before all other parsing as they are a special case. Once the scanner is finished, a list of tokens is returned. Creating the generated file is easy at that point with adding cs512 to each identifier but the one with the string 'main'. 
 
 Each valid token is compiled as a regex in the top of the file. After that, a dictionary with token to regex holds information for ease of use. The dict is used to iterate over each substring to find eligible tokens for the strings.
 
