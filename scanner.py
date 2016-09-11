@@ -6,6 +6,8 @@ Parses input file for tokens and creates a generated filed adding cs512 to all i
 import sys
 import re
 import os
+
+sys.path.append("./lib/enum")
 from enum import Enum
 
 LETTER = '[a-zA-Z\_]'

@@ -2,4 +2,16 @@
     #define read(x) scanf("%d\n", &x) 
     #define write(x) printf("%d\n", x)
    // function foo 
-void csc512foo ( ) { int csc512a ; read ( csc512a ) ; write ( csc512a ) ; csc512a = "fun!" ; if ( csc512a > = 0 && csc512a < 0 || csc512a > 2 ) { read ( csc512a ) ; } } int main ( ) { csc512foo ( ) ; } 
+    void cs512foo() { 
+        int cs512a; 
+        read(cs512a); 
+        write(cs512a);
+	cs512a = "fun!";
+	if(cs512a>=0 && cs512a < 0 ||cs512a>2 ) {
+        	read(cs512a);
+        } 
+    }
+
+    int main() { 
+        cs512foo(); 
+    }

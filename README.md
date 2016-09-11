@@ -6,23 +6,20 @@ and will then create a new file (filename\_gen.ext) with the contents adjusted t
 
 ## Requirements
 1. python 2.7.6
-2. install dependencies
+2. Run scanner.py from project folder.
 
 ## Dependencies
-In order to run the scanner, you will need to install the dependencies. To install depenencies run the command below command.
-
-```sh
-pip install -r dependencies.txt
-```
+Dependencies are included in the directory.
 
 ## How to compile and run scanner
 To execute program run and use the name of your file.
 
 ```sh
-python scanner.py <filename>
+python scanner.py <filename> 
 ```
 
-The scanner will output a file called filename_gen.c.
+The scanner will output a file called filename_gen.c. Python must be run from 
+the root project folder where scanner.py is defined.
 
 If an error occurs because of a bad format, the scanner will
 raise an error condition and not generate a file.
