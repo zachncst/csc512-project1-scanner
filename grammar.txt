@@ -1,0 +1,112 @@
+<program> --> <prog data decls>
+          | empty
+
+<prog data decls> --> <type name> <prog data decls end> 
+
+<prog data decls end> --> <id list> semicolon <program>
+      | <id> <func> <func list>
+
+<func data decls> --> empty | <type name> <id list> semicolon <func data decls> 
+
+<func list> --> empty
+      | <func> <func list>
+
+<func> --> <func decl> <func end>
+<func end> --> semicolon
+      | left_brace <func data decls> <statements> right_brace
+
+<func decl> --> <type name> ID left_parenthesis <parameter list> right_parenthesis
+
+<type name> --> int
+      | void
+      | binary
+      | decimal
+
+<parameter list> --> empty
+           | void
+           | <non-empty list>
+
+<non-empty list>  --> <type name> ID <non-empty-list`>
+<non-empty list`> --> comma <type name> ID <non-empty-list`>
+           | empty
+
+<id list>  --> <id> <id list`>
+<id list`> --> comma <id> <id list`>
+    | empty
+
+<id> --> ID <id ending>
+<id ending> --> left_bracket <expression> right_bracket
+    | empty
+
+<block statements> --> left_brace <statements> right_brace
+
+<statements> --> empty
+             | <statement> <statements>
+
+<statement> --> <assignment>
+            | <func call>
+            | <if statement>
+            | <while statement>
+            | <return statement>
+            | <break statement>
+            | <continue statement>
+            | read left_parenthesis ID right_parenthesis semicolon
+            | write left_parenthesis <expression> right_parenthesis semicolon
+            | print left_parenthesis STRING right_parenthesis semicolon
+
+<assignment> --> <id> equal_sign <expression> semicolon
+
+<func call> --> ID left_parenthesis <expr list> right_parenthesis semicolon
+
+<expr list> --> empty
+      | <non-empty expr list>
+
+<non-empty expr list>  --> <expression> <non-empty expr list`> 
+<non-empty expr list`> --> comma <expression> <non-empty expr list`>
+           | empty
+
+<if statement> --> if left_parenthesis <condition expression> right_parenthesis <block statements>
+
+<condition expression> -->  <condition> <condition ending>
+<condition ending> --> empty
+           | <condition op> <condition>
+
+<condition op> --> double_and_sign
+           | double_or_sign
+
+<condition> --> <expression> <comparison op> <expression>
+
+<comparison op> --> ==
+            | !=
+            | >
+            | >=
+            | <
+            | <=
+
+<while statement> --> while left_parenthesis <condition expression> right_parenthesis <block statements>
+
+<return statement> --> return <return ending>
+<return ending> --> <expression> semicolon | semicolon
+
+<break statement> ---> break semicolon
+
+<continue statement> ---> continue semicolon
+
+<expression> --> <term> <expression`>
+<expression`> --> <addop> <term> <expression`> | empty
+
+<addop> --> plus_sign
+        | minus_sign
+
+<term> --> <factor>
+       | <term> <mulop> <factor>
+
+<mulop> --> star_sign
+        | forward_slash
+
+<factor> --> ID
+         | ID left_bracket <expression> right_bracket
+         | ID left_parenthesis <expr list> right_parenthesis
+         | NUMBER
+         | minus_sign NUMBER
+         | left_parenthesis <expression> right_parenthesis
