@@ -1,12 +1,16 @@
+#if extension, review with code and revise
+
 <program> --> <prog data decls>
           | empty
 
-<prog data decls> --> <type name> <prog data decls end> 
+<prog data decls> --> <type name> <id> <prog data decls end> 
 
-<prog data decls end> --> <id list> semicolon <program>
-      | <id> <func> <func list>
+<prog data decls end> --> <id list`> semicolon <program>
+      | <func_half> <func list> 
 
-<func data decls> --> empty | <type name> <id list> semicolon <func data decls> 
+<func data decls> --> empty | <type name> <id list> semicolon <func data decls>
+
+<func_half> --> <func decl hafl> --> left_ <parameter list> right_parenthesis
 
 <func list> --> empty
       | <func> <func list>

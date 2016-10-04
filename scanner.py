@@ -14,9 +14,9 @@ LETTER = '[a-zA-Z\_]'
 DIGIT = '\d'
 
 #Regexes of Tokens
-IDENTIFIER = re.compile('' + LETTER + '(' + LETTER + '|' + LETTER + DIGIT + ')*')
+IDENTIFIER = re.compile('' + LETTER + '(' + LETTER + '|' + DIGIT + ')*')
 NUMBER = re.compile('' + DIGIT +'+')
-SYMBOL = re.compile('\(|\)|\{|\}|\[|\]|,|;|\+|-|\*|\/|==|\!=|>|>=|<|<=|=|&&|\|\|')
+SYMBOL = re.compile('\(|\)|\{|\}|\[|\]|,|;|\+|-|\*|\/|==|\!=|>=|>|<=|<|=|&&|\|\|')
 RESERVED_WORD = re.compile('int|void|if|while|return|read|write|print|continue|break|binary|decimal')
 STRING = re.compile('".*"')
 META_STATEMENT = re.compile('(\#|\/\/).*\n')
@@ -47,6 +47,7 @@ class Token:
     self.string=string
     #: int: integer type from Enum
     self.token_type=token_type
+    self.parser_type = None
 
 class InvalidToken(Exception):
   def __init__(self,token,line_number,column):
