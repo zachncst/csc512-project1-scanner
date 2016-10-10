@@ -1,16 +1,19 @@
-#if extension, review with code and revise
+LL(1) grammar by Zach Taylor (zctaylor@ncsu.edu)
+
+# production rules: 44
+# distinct non-terminals: 84
 
 <program> --> <prog data decls>
           | empty
 
 <prog data decls> --> <type name> <id> <prog data decls end> 
 
-<prog data decls end> --> <id list`> semicolon <program>
+<prog data decls end> --> <id list`> semicolon <prog data decls>
       | <func_half> <func list> 
 
 <func data decls> --> empty | <type name> <id list> semicolon <func data decls>
 
-<func_half> --> <func decl hafl> --> left_ <parameter list> right_parenthesis
+<func decl hafl> --> left_parenthesis <parameter list> right_parenthesis
 
 <func list> --> empty
       | <func> <func list>
@@ -47,8 +50,7 @@
 <statements> --> empty
              | <statement> <statements>
 
-<statement> --> <assignment>
-            | <func call>
+<statement> --> <id> <assignment or func call> 
             | <if statement>
             | <while statement>
             | <return statement>
@@ -57,6 +59,9 @@
             | read left_parenthesis ID right_parenthesis semicolon
             | write left_parenthesis <expression> right_parenthesis semicolon
             | print left_parenthesis STRING right_parenthesis semicolon
+
+<assignment or func call> -> <assignment>
+               | <func call> 
 
 <assignment> --> <id> equal_sign <expression> semicolon
 
@@ -103,7 +108,10 @@
         | minus_sign
 
 <term> --> <factor>
-       | <term> <mulop> <factor>
+       | <mulop> <factor> <term`>
+
+<term'> --> <mulop> <factor> <term`>
+       | <empty>
 
 <mulop> --> star_sign
         | forward_slash

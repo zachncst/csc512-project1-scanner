@@ -5,7 +5,7 @@ Parses input file reports if it matches schema along with printing
 out stats of the application.
 """
 import inspect
-import sys
+import sys, traceback
 from scanner import tokenize_file, Tokens
 
 class RecursiveDescentParser:
@@ -14,25 +14,34 @@ class RecursiveDescentParser:
   of the current token and the state of tokens.
   '''
 
-  def __init__(self):
+  def __init__(self, file_name):
     self.tokens = None
     self.current_token = None
     self.next_token = None
+    self.tokens = iter(self.convert_grammar(tokenize_file(file_name)))
+    self.variable_count = 0
+    self.function_count = 0
+    self.statement_count = 0
 
-  def parse_tokens(self, tokens):
+  def parse_tokens(self):
     ''' Entry to parse file'''
 
     print 'Parsing file start \n'
-    self.tokens = iter(tokens)
     self._advance()
 
-    try: 
+    try:
       self.program()
     except StopIteration:
-      print "Parsed successfully"
+      print "pass variable " + str(self.variable_count) + \
+        " function " + str(self.function_count) + \
+        " statement " + str(self.statement_count)
+    except Exception as inst:
+      print "error : File failed to parse"
+      traceback.print_exc(file=sys.stdout)
 
 
   def _advance(self):
+    '''Advances the token to the next token'''
     if self.next_token:
       self.current_token = self.next_token
 
@@ -40,6 +49,7 @@ class RecursiveDescentParser:
     self.debug_token("_advance")
 
   def _accept(self, token_type):
+    '''Matches a token and advances a token if true'''
     if self.next_token and self.next_token.parser_type == token_type:
       self._advance()
       return True
@@ -47,13 +57,16 @@ class RecursiveDescentParser:
       return False
 
   def _check_cond(self, token_types):
+    '''Checks for multiple different token types, used for quick match'''
     return any(map(lambda x: x == self.next_token.parser_type, token_types))
 
   def _expect(self, token_type):
+    '''Expect a certain token, if not found throws an exception'''
     if not self._accept(token_type):
       raise SyntaxError('Expected ' + token_type)
 
   def debug_token(self, msg):
+    '''Debugs the current and next token'''
     flag = False
     prnt_str = ''
 
@@ -65,6 +78,10 @@ class RecursiveDescentParser:
     if flag:
       print msg + ' ' + inspect.stack()[4][3] + '.' + \
         inspect.stack()[3][3] + '.' + inspect.stack()[2][3] + prnt_str
+      print "pass variable " + str(self.variable_count) + \
+        " function " + str(self.function_count) + \
+        " statement " + str(self.statement_count)
+
 
   def program(self):
     ''' <program> --> <prog data decls>
@@ -93,7 +110,9 @@ class RecursiveDescentParser:
   def prog_data_decls_end(self):
     ''' <prog data decls end> --> <id list prime> semicolon <program>
              | <func half> <func_end> <func list> '''
-    if self.is_id_list_prime():
+    self.debug_token("prog_data_decls_end")
+    if self.is_id_list_prime() or self._check_cond(['semicolon']):
+      self.variable_count += 1
       idlst = self.id_list_prime()
       self._expect('semicolon')
       prog = self.program()
@@ -126,6 +145,7 @@ class RecursiveDescentParser:
     ''' <func list> --> <func> <func list>
              | empty '''
     if self.is_func():
+      self.function_count += 1
       my_func = self.func()
       my_func_list = self.func_list()
       return [my_func] + my_func_list
@@ -162,6 +182,7 @@ class RecursiveDescentParser:
   def func_decl_half(self):
     ''' <func decl hafl> --> left_parenthesis <parameter list> right_parenthesis <func_end>
     '''
+    self.function_count += 1
     self._expect('left_parenthesis')
     params = self.parameter_list()
     self._expect('right_parenthesis')
@@ -255,6 +276,7 @@ class RecursiveDescentParser:
 
   def id_list(self):
     ''' <id list>  --> <id> <id list`> '''
+    self.variable_count += 1
     my_id = self.id()
     rest = self.id_list_prime()
 
@@ -268,6 +290,7 @@ class RecursiveDescentParser:
               | empty
     '''
     if self._accept('comma'):
+      self.variable_count += 1
       my_id = self.id()
       rest = self.id_list_prime()
       return [my_id] + rest
@@ -336,6 +359,8 @@ class RecursiveDescentParser:
               | write left_parenthesis <expression> right_parenthesis semicolon
               | print left_parenthesis STRING right_parenthesis semicolon
     '''
+    self.statement_count += 1
+
     if self.is_id():
       my_id = self.id()
       return self.assignment_or_func_call(my_id)
@@ -584,7 +609,8 @@ class RecursiveDescentParser:
   def continue_statement(self):
     ''' <continue statement> ---> continue semicolon
     '''
-    if self._accept('continue') and self._accept(';'):
+    if self._accept('continue'):
+      self._expect('semicolon')
       return True
     else :
       raise SyntaxError('expected break and semicolon')
@@ -694,77 +720,59 @@ class RecursiveDescentParser:
   def is_factor(self):
     return self._check_cond(['ID', 'NUMBER', 'minus_sign', 'left_parenthesis']) 
 
-def convert_grammar(tokens):
-  '''Converting grammar to parser like grammar i.e. minus_sign, left_, etc'''
-  new_tokens = []
-  for token in tokens:
-    if token.token_type == Tokens.symbol:
-      if token.string == ';':
-        token.parser_type = 'semicolon'
-      if token.string == ',':
-        token.parser_type = 'comma'
-      if token.string == '=':
-        token.parser_type = 'equal_sign'
-      if token.string == '(':
-        token.parser_type = 'left_parenthesis'
-      if token.string == ')':
-       token.parser_type = 'right_parenthesis'
-      if token.string == ']':
-        token.parser_type = 'right_bracket'
-      if token.string == '[':
-        token.parser_type = 'left_bracket'
-      if token.string == '*':
-        token.parser_type = 'star_sign'
-      if token.string == '/':
-        token.parser_type = 'forward_slash'
-      if token.string == '+':
-        token.parser_type = 'plus_sign'
-      if token.string == '-':
-        token.parser_type = 'minus_sign'
-      if token.string == '{':
-        token.parser_type = 'left_brace'
-      if token.string == '}':
-        token.parser_type = 'right_brace'
-      if token.string == '&&':
-        token.parser_type = 'double_and_sign'
-      if token.string == '||':
-        token.parser_type = 'double_or_sign'
-      if any(map(lambda x: token.string == x, ['==', '!=', '>', '>=', '<', '<='])):
+  def convert_grammar(self, tokens):
+    '''Converting grammar to parser like grammar i.e. minus_sign, left_, etc'''
+    new_tokens = []
+    for token in tokens:
+      if token.token_type == Tokens.symbol:
+        if token.string == ';':
+          token.parser_type = 'semicolon'
+        if token.string == ',':
+          token.parser_type = 'comma'
+        if token.string == '=':
+          token.parser_type = 'equal_sign'
+        if token.string == '(':
+          token.parser_type = 'left_parenthesis'
+        if token.string == ')':
+          token.parser_type = 'right_parenthesis'
+        if token.string == ']':
+          token.parser_type = 'right_bracket'
+        if token.string == '[':
+          token.parser_type = 'left_bracket'
+        if token.string == '*':
+          token.parser_type = 'star_sign'
+        if token.string == '/':
+          token.parser_type = 'forward_slash'
+        if token.string == '+':
+          token.parser_type = 'plus_sign'
+        if token.string == '-':
+          token.parser_type = 'minus_sign'
+        if token.string == '{':
+          token.parser_type = 'left_brace'
+        if token.string == '}':
+          token.parser_type = 'right_brace'
+        if token.string == '&&':
+          token.parser_type = 'double_and_sign'
+        if token.string == '||':
+          token.parser_type = 'double_or_sign'
+        if any(map(lambda x: token.string == x, ['==', '!=', '>', '>=', '<', '<='])):
+          token.parser_type = token.string
+
+        new_tokens.append(token)
+      elif token.token_type == Tokens.reserved_word:
         token.parser_type = token.string
-      new_tokens.append(token)
-    elif token.token_type == Tokens.reserved_word:
-      token.parser_type = token.string
-      new_tokens.append(token)
-    elif token.token_type == Tokens.identifier:
-      token.parser_type = 'ID'
-      new_tokens.append(token)
-    elif token.token_type == Tokens.number:
-      token.parser_type = 'NUMBER'
-      new_tokens.append(token)
-    elif token.token_type == Tokens.string:
-      token.parser_type = 'STRING'
-      new_tokens.append(token)
+        new_tokens.append(token)
+      elif token.token_type == Tokens.identifier:
+        token.parser_type = 'ID'
+        new_tokens.append(token)
+      elif token.token_type == Tokens.number:
+        token.parser_type = 'NUMBER'
+        new_tokens.append(token)
+      elif token.token_type == Tokens.string:
+        token.parser_type = 'STRING'
+        new_tokens.append(token)
 
-  return new_tokens
-
-# Define a main() function that scans file and prints output to new file.
-def main():
-  # Get the name from the command line.
-  if len(sys.argv) >= 2:
-    file_name = sys.argv[1]
-  else:
-    raise Exception('Filename not provided')
-
-  print 'Running scanner on ' + file_name
-  tokens = tokenize_file(file_name)
-
-  print 'Tokens parsed, now parsing'
-
-# This is the standard boilerplate that calls the main() function.
-if __name__ == '__main__':
-  main()
-
-
+    return new_tokens
 
 
 # Define a main() function that scans file and prints output to new file.
@@ -775,14 +783,9 @@ def main():
   else:
     raise Exception('Filename not provided')
 
-  print 'Running scanner on ' + file_name
-  tokens = tokenize_file(file_name)
-  new_tokens = convert_grammar(tokens)
-
-  print 'Tokens parsed, now parsing'
-
-  parser = RecursiveDescentParser()
-  parser.parse_tokens(new_tokens)
+  print 'Running parser on ' + file_name
+  parser = RecursiveDescentParser(file_name)
+  parser.parse_tokens()
 
 # This is the standard boilerplate that calls the main() function.
 if __name__ == '__main__':

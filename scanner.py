@@ -86,7 +86,7 @@ def get_matches_that_starts_with(str) :
   for key, regex in token_to_regex_map.items():
     mat = regex.match(str)
     if mat:
-      matches.append((key, regex, mat))
+      matches.append((key, regex, mat, len(mat.group(0))))
 
   return matches
 
@@ -110,7 +110,8 @@ def tokenize_word(word, line, line_count):
     return(tokens)
 
   matches = get_matches_that_starts_with(word)
-  sorted(matches, key= lambda x: x[0])
+  matches = sorted(matches, key= lambda x: x[0])
+  matches = sorted(matches, key= lambda x: x[3], reverse=True)
 
   if len(matches) > 0:
     token_match = matches[0]
