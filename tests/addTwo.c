@@ -2,9 +2,14 @@
 #define read(x) scanf("%d",&x)
 #define write(x) printf("%d\n",x)
 
+int add(int a) {
+  int b;
+  read(b);
+  return a+b;
+}
+
 int main() {
-    int a, sum;
-    read(a);
-    sum = (a+1) *a / 2;
-    write(sum);
+  int a, b;
+  read(a);
+  write(add(a));
 }
