@@ -8,7 +8,7 @@ import re
 import os
 
 sys.path.append("./lib/enum")
-from enum import Enum
+from localenum import Enum
 
 LETTER = '[a-zA-Z\_]'
 DIGIT = '\d'
@@ -21,9 +21,11 @@ RESERVED_WORD = re.compile('int|void|if|while|return|read|write|print|continue|b
 STRING = re.compile('".*"')
 META_STATEMENT = re.compile('(\#|\/\/).*\n')
 SPACES = re.compile('\s+')
+EOF = re.compile('')
 
 class Tokens(Enum):
   """Enum representing all available tokens"""
+  eof = 0
   meta = 1
   reserved_word = 2
   symbol = 3
@@ -32,7 +34,8 @@ class Tokens(Enum):
   string = 6
   spaces = 7
 
-token_to_regex_map = dict([(Tokens.meta, META_STATEMENT),
+token_to_regex_map = dict([ (Tokens.eof, EOF),
+                            (Tokens.meta, META_STATEMENT),
                            (Tokens.reserved_word, RESERVED_WORD),
                            (Tokens.identifier, IDENTIFIER),
                            (Tokens.number, NUMBER),
@@ -48,6 +51,7 @@ class Token:
     #: int: integer type from Enum
     self.token_type=token_type
     self.parser_type = None
+    self.written = False
 
 class InvalidToken(Exception):
   def __init__(self,token,line_number,column):
@@ -144,6 +148,7 @@ def tokenize_file(filename):
     else :
       tokens.extend(tokenize_word(line, line, line_count))
 
+  tokens.append(Token(EOF, Tokens.eof))
   return(tokens)
 
 def create_gen_file_from_tokens(file_name, tokens):
