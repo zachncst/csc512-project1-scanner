@@ -5,7 +5,7 @@ Takes parsed output from parser and generates gcc compliant code
 """
 
 import sys, traceback
-from parser import RecursiveDescentParser, Structure, Operation, ParseTree
+from parser import RecursiveDescentParser, Structure, ParseTree
 
 FUNCTION_DEF = "{0} {1} ({2}) {{"
 FUNCTION_END = "}"
@@ -34,7 +34,8 @@ class CodeGenerator(RecursiveDescentParser, object):
 
   def generate_code(self) :
     self.parse_tokens()
-    self.parse_tree(self.program_tree)
+    self.program_tree.show()
+    self.program_tree.show(data_property="_enum")
 
   def print_code(self):
     return reduce(lambda x, y: x + "\n" + y, self.out)
@@ -86,8 +87,6 @@ class CodeGenerator(RecursiveDescentParser, object):
           if not str(stmt.op) in local_dict :
             local_dict[str(stmt.op)] = local_count
             local_count += 1
-
-
 
 
     print local_dict
