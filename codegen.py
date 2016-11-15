@@ -35,6 +35,7 @@ class CodeGenerator(RecursiveDescentParser, object):
   def generate_code(self) :
     self.parse_tokens()
     self.parse_tree(self.program_tree)
+    print self.program_tree
 
   def print_code(self):
     return reduce(lambda x, y: x + "\n" + y, self.out)
