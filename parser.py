@@ -194,29 +194,31 @@ class RecursiveDescentParser:
         " statement " + str(self.statement_count)
 
 
-  def program(self, global_var_list = []):
+  def program(self, global_var_list = [], meta_list = []):
     ''' <program> --> <prog data decls>
              | empty
     '''
+    while self._accept('META'):
+      meta_list.append(self.current_token.string)
 
     if self.is_prog_data_decls():
-      program_value = self.prog_data_decls(global_var_list)
+      program_value = self.prog_data_decls(global_var_list, meta_list)
       return program_value
     else :
       return ''
 
-  def prog_data_decls(self, global_var_list):
+  def prog_data_decls(self, global_var_list, meta_list):
     ''' <prog data decls> --> <type name> <id> <prog data decls end> '''
 
     type_name = self.type_name()
     id = self.id()
-    return self.prog_data_decls_end(global_var_list, type_name, id)
+    return self.prog_data_decls_end(global_var_list, meta_list, type_name, id)
 
   def is_prog_data_decls(self):
     return self.is_type_name()
 
 
-  def prog_data_decls_end(self, global_var_list, type_name, id_val):
+  def prog_data_decls_end(self, global_var_list, meta_list, type_name, id_val):
     ''' <prog data decls end> --> <id list prime> semicolon <program>
              | <func half> <func_end> <func list> '''
     if self.is_id_list_prime() or self._check_cond(['semicolon']):
@@ -227,12 +229,12 @@ class RecursiveDescentParser:
       mylist =  map(lambda x : Variable(x, type_name), idlst)
       global_var_list.extend(mylist)
 
-      return self.program(global_var_list)
+      return self.program(global_var_list, meta_list)
     elif self.is_func_decl_half() :
       params = self.func_decl_half()
       my_func = self.func_end(id_val, type_name, params)
       func_list = self.func_list(my_func)
-      return Program(None, global_var_list, func_list)
+      return Program(meta_list, global_var_list, func_list)
     else :
       raise SyntaxError('expected id list or func')
 
@@ -849,6 +851,9 @@ class RecursiveDescentParser:
         new_tokens.append(token)
       elif token.token_type == Tokens.eof:
         token.parser_type = 'EOF'
+        new_tokens.append(token)
+      elif token.token_type == Tokens.meta:
+        token.parser_type = 'META'
         new_tokens.append(token)
 
     return new_tokens

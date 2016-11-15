@@ -1,11 +1,13 @@
-# CSC512 Project 2
+# CSC512 Project 3
 
 ## Description
-Parser written in python 2.7.6. The code parsers parses a file, converts the file into tokens, and then compares the tokens to a schema. The parser will print either pass or fail. If the parser passes, the counts of variable, functions and statements will print.  The parser was written in the style of recursive decent. Function names are named after the schema.
+Code generator written in python 2.7.6. The code generator first scans, then parses the file generating a logical structure that the code generator uses to generate code. The code generator will handle global and local variables replacing with an array and also the replace while and if with gotos.
+
+The logical structures is AST like in it's implementation.
 
 ## Requirements
 1. python 2.7.6
-2. Run parser.py from project folder.
+2. Run codegen.py from project folder.
 
 ## Dependencies
 Dependencies are included in the directory.
@@ -14,14 +16,14 @@ Dependencies are included in the directory.
 To execute program run and use the name of your file.
 
 ```sh
-python parser.py <filename> 
+python codegen.py <filename> 
 ```
 
 Parser output should look like this:
 
 ### Pass
 
-pass variable # function # statement #
+Outputs to a new file called <filename>_gen
 
 
 ### Fail

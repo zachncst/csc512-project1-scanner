@@ -4,7 +4,7 @@ zctaylor@ncsu.edu
 Takes parsed output from parser and generates gcc compliant code
 """
 
-import sys, traceback
+import sys, traceback, os, re
 from parser import RecursiveDescentParser, Structure, Operation, ParseTree
 
 FUNCTION_DEF = "{0} {1} ({2}) {{"
@@ -158,7 +158,14 @@ def codegen(file_name) :
   print 'Running parser on ' + file_name
   code_gen = CodeGenerator(file_name)
   code_gen.generate_code()
+
   print 'Code is \n' + code_gen.print_code()
+
+  name, file_extension = os.path.splitext(file_name)
+  new_file_name = name + '_gen' + file_extension
+  new_file = open(new_file_name, "w")
+  new_file.write(code_gen.print_code())
+  new_file.close()
 
 def if_none(val, default):
   if val == None:
