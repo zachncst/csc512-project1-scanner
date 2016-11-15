@@ -19,11 +19,12 @@ class Structure(Enum):
   id = 1
   variable = 2
   statement = 3
-  operation = 4
+  symbol = 4
   func_call = 5
   function = 6
   condition = 7
   expression = 8
+  constant = 9
 
 class ParseTree:
   def __init__(self):
@@ -66,16 +67,6 @@ class Condition(ParseTree, object):
   def __repr__(self):
     return self.__str__()
 
-class Expression(ParseTree, object):
-  def __init__(self, name):
-    super(Expression, self).__init__()
-    self._enum = Structure.expression
-    self.name = name
-  def __str__(self):
-    return "Expression(" + str(self.name) + ")"
-  def __repr__(self):
-    return self.__str__()
-
 class Statement(ParseTree, object):
   def __init__(self, name):
     super(Statement, self).__init__()
@@ -86,16 +77,23 @@ class Statement(ParseTree, object):
   def __repr__(self):
     return self.__str__()
 
-class Operation(ParseTree, object):
-  def __init__(self, left, operation, right):
-    super(Operation, self).__init__()
-    self._enum = Structure.operation
-    self.left = left
-    self.right = right
-    self.operation = operation
+class Symbol(ParseTree, object):
+  def __init__(self, name):
+    super(Symbol, self).__init__()
+    self._enum = Structure.symbol
+    self.name = name 
   def __str__(self):
-    return "Operation(" + str(self.left) + "," \
-      + str(self.right) + "," + str(self.operation) + ")"
+    return "Symbol(" + str(self.name) + ")"
+  def __repr__(self):
+    return self.__str__()
+
+class Constant(ParseTree, object):
+  def __init__(self, name):
+    super(Constant, self).__init__()
+    self._enum = Structure.constant
+    self.name = name 
+  def __str__(self):
+    return "Constant(" + str(self.name) + ")"
   def __repr__(self):
     return self.__str__()
 
@@ -469,9 +467,8 @@ class RecursiveDescentParser:
       tree.create_node(stmt.name, stmt._id, parent=parent, data=stmt)
       cond = Condition('write cond')
       tree.create_node(cond.name, cond._id, parent=stmt._id, data=cond)
-
       expr  = self.expression()
-      tree.create_node(expr.name, expr._id, parent=cond._id, data=expr)
+      tree.paste(cond._id, expr)
       self._expect('right_parenthesis')
       self._expect('semicolon')
     elif self._accept('print'):
@@ -682,7 +679,7 @@ class RecursiveDescentParser:
       stmt = Statement('return')
       tree.create_node(stmt.name, stmt._id, parent=parent, data=stmt)
       expr = self.expression();
-      tree.create_node(expr.name, expr._id, parent=stmt._id, data=expr)
+      tree.paste(stmt._id, expr)
       self._expect('semicolon')
     else:
       self._expect('semicolon')
@@ -715,22 +712,23 @@ class RecursiveDescentParser:
     ''' <expression> --> <term> <expression`>
     '''
     term = self.term()
-    return Expression(self.expression_prime(term))
+    return self.expression_prime(term, Tree(), None)
 
   def is_expression(self):
     return self.is_term()
 
-  def expression_prime(self, term1):
+  def expression_prime(self, term1, tree, parent):
     ''' <expression`> --> <addop> <term> <expression`>
                | empty
     '''
     if self.is_addop():
       op = self.addop()
       term2 = self.term()
-      expression = self.expression_prime(term2)
-      return Operation(term1, op, expression) 
+      tree.create_node(op.name, op._id, data=op, parent=parent)
+      tree.create_node(term1.name, term1._id, parent=op._id, data=term1)
+      return self.expression_prime(term2, tree, op._id)
     else :
-      return term1
+      return tree
 
   def addop(self):
     ''' <addop> --> plus_sign
@@ -738,9 +736,9 @@ class RecursiveDescentParser:
     '''
 
     if self._accept("plus_sign"):
-      return self.current_token.string
+      return Symbol(self.current_token.string)
     elif self._accept("minus_sign"):
-      return self.current_token.string
+      return Symbol(self.current_token.string)
     else :
       raise SyntaxError('expected one of + | - ')
 
