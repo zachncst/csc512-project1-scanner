@@ -7,6 +7,9 @@ Takes parsed output from parser and generates gcc compliant code
 import sys, traceback
 from parser import RecursiveDescentParser, Structure, ParseTree
 
+sys.path.append("./lib/treelib")
+from treelib import Node, Tree
+
 FUNCTION_DEF = "{0} {1} ({2}) {{"
 FUNCTION_END = "}"
 
@@ -35,7 +38,72 @@ class CodeGenerator(RecursiveDescentParser, object):
   def generate_code(self) :
     self.parse_tokens()
     self.program_tree.show()
-    self.program_tree.show(data_property="_enum")
+    self.parse_tree_n(self.program_tree)
+
+  def parse_tree_n(self, tree) :
+    global_var_map = self.build_global_var_map(tree)
+    local_var_map = self.build_local_var_map(tree)
+
+    print global_var_map
+    print local_var_map
+
+  def build_global_var_map(self, tree):
+    count = 0
+    var_map = {}
+    for node in tree.children('program'):
+      if node.data._enum == Structure.variable:
+        if node.data._id not in var_map:
+          var_map[node.data._id] = count
+          count += 1
+
+    return var_map
+
+  def build_local_var_map(self, tree):
+    var_map = {}
+    count = 0
+    for node in tree.children("program"):
+      if node.data._enum == Structure.function:
+        var_map[node.data._id] = self.build_local_var_map_func(tree, node.identifier)
+
+    return var_map
+
+  def build_local_var_map_func(self, tree, id, var_map = {}, count = 0):
+    for node in tree.children(id):
+      if node.data._enum == Structure.operation:
+        print "op" + str(node)
+      if node.data._enum == Structure.expression:
+        print "exp" + str(node)
+      if node.data._enum == Structure.variable:
+        print "var" + str(node)
+      if node.data._enum == Structure.id:
+        print "id" + str(node)
+      if node.data._enum == Structure.condition:
+        print "cond" + str(node)
+      if node.data._enum == Structure.func_call:
+        print "func" + str(node)
+      if node.data._enum == Structure.statement and node.data.name in ['while', 'if', 'return']:
+        self.build_local_var_map_func(tree, node.data._id, var_map, count)
+
+    return var_map
+
+  def print_node(self, global_var_map, local_var_map, node):
+    for node in tree.children(id):
+      if node.data._enum == Structure.operation:
+        self.print_node(global_var_map, local)
+      if node.data._enum == Structure.expression:
+        self.print_node(global_var_map, local)
+      if node.data._enum == Structure.variable:
+        print "var" + str(node)
+      if node.data._enum == Structure.id:
+        print "id" + str(node)
+      if node.data._enum == Structure.condition:
+        print "cond" + str(node)
+      if node.data._enum == Structure.func_call:
+        print "func" + str(node)
+      if node.data._enum == Structure.statement and node.data.name in ['while', 'if', 'return']:
+        self.build_local_var_map_func(tree, node.data._id, var_map, count)
+
+
 
   def print_code(self):
     return reduce(lambda x, y: x + "\n" + y, self.out)
