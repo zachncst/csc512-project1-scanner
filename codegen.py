@@ -88,16 +88,13 @@ class CodeGenerator(RecursiveDescentParser, object):
             local_dict[str(stmt.op)] = local_count
             local_count += 1
 
-
-
-
     print local_dict
     self.out += [LOCALS_DEF.format(len(local_dict.keys()))]
 
     for stmt in func.statements:
       if stmt._enum == Structure.statement :
         if stmt.op and isinstance(stmt.op, Operation) and stmt.op._enum == Structure.operation:
-          self.print_next_op(stmt.op, local_dict, global_vars)
+          self.print_next_op(stmt.op, local_dict, global_vars, func.params)
 
         if stmt.cond and isinstance(stmt.cond, ParseTree) and stmt.cond._enum == Structure.func_call:
           right = "{0}({1})".format(stmt.cond.name, reduce( lambda x, y: x + ',' +y, map(lambda x: LOCALS_OP.format(local_dict[str(x)]), stmt.cond.expr)))
@@ -144,9 +141,11 @@ class CodeGenerator(RecursiveDescentParser, object):
     return [LOCALS_SET.format(local_dict[str(stmt.cond)], right)]
 
 
-  def print_next_op(self, op, local_functions, global_functions):
-    self.out += [LOCALS_SET.format(local_functions[str(op.left)], str(op.left))]
-    self.out += [LOCALS_SET.format(local_functions[str(op.right)], str(op.right))]
+  def print_next_op(self, op, local_functions, global_functions, params):
+    if op.left in map(lambda x: x.name, params):
+      self.out += [LOCALS_SET.format(local_functions[str(op.left)], str(op.left))]
+    if op.right in map(lambda x: x.name, params):
+      self.out += [LOCALS_SET.format(local_functions[str(op.right)], str(op.right))]
     self.out += [LOCALS_SET.format(local_functions[str(op)],
                                    OPERATION.format(LOCALS_OP.format(local_functions[str(op.left)]),
                                                     op.operation,
