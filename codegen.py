@@ -11,7 +11,7 @@ FUNCTION_DEF = "{0} {1} ({2}) {{"
 FUNCTION_END = "}"
 
 GLOBALS_DEF = "globals[{0}];"
-LOCALS_DEF = "locals[{0}];"
+LOCALS_DEF = "int locals[{0}];"
 LOCALS_SET = "locals[{0}]={1};"
 LOCALS_OP  = "locals[{0}]"
 OPERATION = "{0}{1}{2}"
