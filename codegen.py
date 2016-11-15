@@ -142,9 +142,9 @@ class CodeGenerator(RecursiveDescentParser, object):
 
 
   def print_next_op(self, op, local_functions, global_functions, params):
-    if op.left in map(lambda x: x.name, params):
+    if op.left in map(lambda x: x.name, if_none(params, [])):
       self.out += [LOCALS_SET.format(local_functions[str(op.left)], str(op.left))]
-    if op.right in map(lambda x: x.name, params):
+    if op.right in map(lambda x: x.name, if_none(params, [])):
       self.out += [LOCALS_SET.format(local_functions[str(op.right)], str(op.right))]
     self.out += [LOCALS_SET.format(local_functions[str(op)],
                                    OPERATION.format(LOCALS_OP.format(local_functions[str(op.left)]),
